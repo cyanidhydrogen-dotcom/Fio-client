@@ -1,16 +1,52 @@
 #include <iostream>
 #include <string>
+#include <chrono>
+#include <thread>
 #include <Windows.h>
 
-#define CLIENT_NAME "Fio"
-#define CLIENT_VERSION "1.0.0"
+constexpr auto CLIENT_NAME = "Fio";
+constexpr auto CLIENT_VERSION = "1.0.0";
 
-void SetConsole()
+enum class LogType
 {
-    SetConsoleTitleA(CLIENT_NAME " | Minecraft Bedrock Client");
+    Info,
+    Success,
+    Warning,
+    Error
+};
+
+void Log(LogType type, const std::string& text)
+{
+    HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    switch (type)
+    {
+    case LogType::Info:
+        SetConsoleTextAttribute(console, 11);
+        std::cout << "[INFO] ";
+        break;
+
+    case LogType::Success:
+        SetConsoleTextAttribute(console, 10);
+        std::cout << "[ OK ] ";
+        break;
+
+    case LogType::Warning:
+        SetConsoleTextAttribute(console, 14);
+        std::cout << "[WARN] ";
+        break;
+
+    case LogType::Error:
+        SetConsoleTextAttribute(console, 12);
+        std::cout << "[FAIL] ";
+        break;
+    }
+
+    SetConsoleTextAttribute(console, 7);
+    std::cout << text << '\n';
 }
 
-void PrintBanner()
+void Banner()
 {
     std::cout << R"(
 
@@ -21,34 +57,50 @@ void PrintBanner()
 ██║     ██║╚██████╔╝
 ╚═╝     ╚═╝ ╚═════╝
 
-)" << std::endl;
-
-    std::cout << CLIENT_NAME << " Client"
-              << " v" << CLIENT_VERSION << "\n\n";
+)";
+    std::cout << "\n";
+    std::cout << "=====================================\n";
+    std::cout << "            Fio Client\n";
+    std::cout << "            Version " << CLIENT_VERSION << "\n";
+    std::cout << "=====================================\n\n";
 }
 
 void Initialize()
 {
-    std::cout << "[+] Initialisation...\n";
+    Log(LogType::Info, "Loading Renderer...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
-    // Initialisation des modules
-    std::cout << "[+] ModuleManager chargé\n";
-    std::cout << "[+] Render chargé\n";
-    std::cout << "[+] ClickGUI chargé\n";
-    std::cout << "[+] HookManager chargé\n";
+    Log(LogType::Info, "Loading UI...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
-    std::cout << "\nLe client est prêt !\n";
+    Log(LogType::Info, "Loading Config...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+    Log(LogType::Info, "Loading Assets...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+    Log(LogType::Success, "Initialization complete.");
 }
 
 int main()
 {
-    SetConsole();
+    SetConsoleTitleA("Fio Client");
 
-    PrintBanner();
+    auto start = std::chrono::high_resolution_clock::now();
+
+    Banner();
 
     Initialize();
 
-    std::cout << "\nAppuyez sur Entrée pour quitter...";
+    auto end = std::chrono::high_resolution_clock::now();
+
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << "\n";
+    Log(LogType::Success, "Fio started successfully.");
+    Log(LogType::Info, "Startup time: " + std::to_string(ms.count()) + " ms");
+
+    std::cout << "\nPress ENTER to exit...";
     std::cin.get();
 
     return 0;
